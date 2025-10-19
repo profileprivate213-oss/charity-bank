@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Charity Bank</title>
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bg:#0b1220;--card:#0f172a;--muted:#93a4b8;--line:#1e293b;--brand:#0ea5e9;--brand2:#22d3ee;--ok:#10b981;--warn:#f59e0b;--err:#ef4444;
+      --text:#e6eef7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:
+        radial-gradient(900px 420px at 80% 0%, rgba(34,211,238,.10), transparent 60%),
+        radial-gradient(900px 420px at 10% 100%, rgba(14,165,233,.12), transparent 60%),
+        var(--bg);
+      color:var(--text);font-family:Inter,system-ui,Arial,sans-serif;
+    }
+
+    /* ---------- Loading Screen ---------- */
+    #loader{
+      position:fixed;inset:0;display:grid;place-items:center;
+      background:rgba(11,18,32,.96);z-index:9999;opacity:1;transition:opacity .45s ease;
+    }
+    #loader.hide{opacity:0;pointer-events:none}
+    .spinner{
+      width:64px;height:64px;border-radius:50%;
+      border:4px solid rgba(255,255,255,.12);
+      border-top-color:var(--brand2);
+      animation:spin .9s linear infinite;
+      box-shadow:0 0 0 6px rgba(255,255,255,.04) inset, 0 0 40px rgba(34,211,238,.25);
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-note{margin-top:18px;font-size:.9rem;color:#cbd5e1;letter-spacing:.3px;text-align:center}
+
+    /* ---------- Shell ---------- */
+    .shell{max-width:720px;margin:0 auto;padding:16px}
+    header{position:sticky;top:0;z-index:20;background:rgba(15,23,42,.75);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+    .header-inner{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 10px}
+    .logo{display:flex;gap:10px;align-items:center}
+    .badge{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:grid;place-items:center;font-weight:800;color:#001b2e}
+    .title{font-weight:800}
+    .chip{font-weight:700;background:linear-gradient(180deg,#0ea5e9,#0284c7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .btn{appearance:none;border:0;border-radius:12px;padding:12px 14px;background:#0b1220;color:var(--text);font-weight:600}
+    .btn.primary{background:linear-gradient(90deg,var(--brand),var(--brand2));color:#001b2e;box-shadow:0 0 0 1px rgba(255,255,255,.04) inset}
+    .btn.ghost{background:transparent;border:1px solid var(--line)}
+    .btn.block{display:block;width:100%}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 6px 26px rgba(0,0,0,.25)}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .grid{display:grid;gap:12px}
+    @media (min-width:700px){.grid.two{grid-template-columns:1fr 1fr}}
+    input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--text)}
+    .kbd{font-size:.82rem;color:var(--muted)}
+    .tabbar{position:fixed;left:0;right:0;bottom:0;background:#0b1220;border-top:1px solid var(--line)}
+    .tabbar .inner{max-width:720px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr}
+    .tabbar button{padding:14px 8px;background:none;border:0;color:#a5b4c0;font-weight:600}
+    .tabbar button.active{color:var(--text);border-top:3px solid var(--brand);margin-top:-3px}
+
+    .hide{display:none}
+    .balance{font-size:30px;font-weight:800;letter-spacing:.2px}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:#102033;border:1px solid #19324a;color:#aad6ff;font-weight:700}
+    .list{display:grid;gap:10px}
+    .item{display:flex;justify-content:space-between;gap:16px;padding:12px;border-radius:12px;background:#0b1526;border:1px solid #12203a}
+    .item .amt.negative{color:#f87171}
+    .item .amt.positive{color:#22c55e}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:#0b1526;border:1px solid #18304a;color:#cfe7ff;padding:12px 14px;border-radius:12px;display:none}
+    .toast.show{display:block}
+  </style>
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loader">
+    <div style="display:grid;place-items:center">
+      <div class="spinner"></div>
+      <div class="loading-note">Starting Charity Bank…</div>
+    </div>
+  </div>
+
+  <header>
+    <div class="header-inner shell">
+      <div class="logo">
+        <div class="badge">CB</div>
+        <div>
+          <div class="title">Charity <span class="chip">Bank</span></div>
+          <div id="topBalance" class="kbd">₩ 0.00</div>
+        </div>
+      </div>
+      <div class="row">
+        <button id="installBtn" class="btn ghost">Install</button>
+        <button id="logoutBtn" class="btn ghost hide">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell" style="padding-bottom:100px">
+    <!-- Login -->
+    <section id="loginView" class="card grid" style="margin-top:16px">
+      <h2 style="margin:0">Log in</h2>
+      <div class="grid">
+        <input id="email" type="email" placeholder="Email" autocomplete="username" required />
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password" required />
+        <button id="loginBtn" class="btn primary block">Log In</button>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="dashView" class="hide grid two" style="margin-top:16px">
+      <div class="card grid">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="opacity:.8">Welcome back,</div>
+            <div id="who" style="font-weight:800;font-size:22px">—</div>
+          </div>
+          <span class="pill">KRW</span>
+        </div>
+        <div>
+          <div style="opacity:.75;margin-bottom:4px">Available balance</div>
+          <div id="bigBalance" class="balance">₩ 0.00</div>
+        </div>
+        <div class="row">
+          <button id="depositOpen" class="btn primary" style="flex:1">Deposit</button>
+          <button id="withdrawOpen" class="btn" style="flex:1">Withdraw (PayPal)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800;margin-bottom:8px">Activity</div>
+        <div class="row" style="gap:8px;margin-bottom:10px">
+          <select id="monthFilter">
+            <option value="all">All months</option>
+            <option value="2025-10">Oct 2025</option>
+            <option value="2025-09">Sep 2025</option>
+          </select>
+          <select id="typeFilter">
+            <option value="all">All types</option>
+            <option value="deposit">Deposit</option>
+            <option value="withdraw">Withdraw</option>
+            <option value="purchase">Purchase</option>
+          </select>
+        </div>
+        <div id="activity" class="list"></div>
+      </div>
+    </section>
+
+    <!-- Wallet -->
+    <section id="walletView" class="hide card grid" style="margin-top:16px">
+      <h3 style="margin:0 0 4px 0">Wallet</h3>
+      <div class="kbd">Primary currency: KRW (₩)</div>
+      <div class="row">
+        <div class="pill">Linked PayPal</div>
+      </div>
+    </section>
+
+    <!-- Banks -->
+    <section id="banksView" class="hide card grid" style="margin-top:16px">
+      <h3 style="margin:0 0 4px 0">Banks</h3>
+      <div class="grid">
+        <div class="row">
+          <input id="bankSearch" placeholder="Search your bank…" />
+          <button id="bankAdd" class="btn">Add Bank</button>
+        </div>
+        <div id="bankList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- Deposit modal -->
+    <section id="depositModal" class="hide card" style="position:fixed;left:50%;bottom:80px;transform:translateX(-50%);max-width:680px;width:calc(100% - 32px)">
+      <div class="row" style="justify-content:space-between">
+        <strong>Deposit to Charity Bank</strong>
+        <button class="btn ghost" onclick="closeDeposit()">Close</button>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <input id="depAmount" type="number" step="0.01" placeholder="Amount (₩)" />
+        <select id="depBank"></select>
+        <button class="btn primary" onclick="doDeposit()">Deposit</button>
+      </div>
+    </section>
+
+    <!-- Withdraw modal -->
+    <section id="withdrawModal" class="hide card" style="position:fixed;left:50%;bottom:80px;transform:translateX(-50%);max-width:680px;width:calc(100% - 32px)">
+      <div class="row" style="justify-content:space-between">
+        <strong>Withdraw to PayPal</strong>
+        <button class="btn ghost" onclick="closeWithdraw()">Close</button>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <input id="wdAmount" type="number" step="0.01" placeholder="Amount (₩)" />
+        <input id="wdPaypal" type="email" placeholder="PayPal email" />
+        <button class="btn primary" onclick="doWithdraw()">Withdraw</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast">Done</div>
+  </main>
+
+  <nav class="tabbar">
+    <div class="inner">
+      <button id="tabDash" class="active">Dashboard</button>
+      <button id="tabWallet">Wallet</button>
+      <button id="tabBanks">Banks</button>
+    </div>
+  </nav>
+
+  <script>
+    /* ----------------- Simple State ----------------- */
+    const KRW = new Intl.NumberFormat('en-US',{style:'currency',currency:'KRW',maximumFractionDigits:2});
+    const el = id=>document.getElementById(id);
+    const show = (n,flag)=> el(n).classList[flag?'remove':'add']('hide');
+    const toast = (msg)=>{const t=el('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600)};
+
+    // Startup loading screen (min 900ms)
+    const startTime = performance.now();
+    function hideLoader(){
+      const spent = performance.now()-startTime;
+      const wait = Math.max(0,900 - spent);
+      setTimeout(()=> el('loader').classList.add('hide'), wait);
+    }
+
+    // Demo/account data (no hints shown in UI)
+    const DEMO = {
+      user: { email:"oshatey@example.com", password:"1234", name:"Oshatey" },
+      balance: 520994770.87,
+      banks: ["Kookmin Bank","Shinhan Bank","Woori Bank"],
+      activity: [
+        // October (sample)
+        {date:"2025-10-14", type:"deposit",  label:"Freelance Payment",    amt:+3200000},
+        {date:"2025-10-11", type:"purchase", label:"Hotel Booking",       amt:-780000},
+        {date:"2025-10-07", type:"withdraw", label:"PayPal • transfer",   amt:-1500000},
+        // September
+        {date:"2025-09-20", type:"deposit",  label:"Salary Deposit",      amt:+4000000},
+        {date:"2025-09-15", type:"deposit",  label:"Investment Return",   amt:+2500000},
+        {date:"2025-09-12", type:"purchase", label:"Equipment Purchase",  amt:-2500000},
+        {date:"2025-09-10", type:"purchase", label:"Flight Booking",      amt:-1200000},
+        {date:"2025-09-08", type:"purchase", label:"Project Services",    amt:-1168000},
+      ]
+    };
+
+    // Persist to localStorage so refresh keeps state
+    const state = JSON.parse(localStorage.getItem('cb_state')||'null') || {
+      logged:false,
+      who:null,
+      balance:DEMO.balance,
+      banks:[...DEMO.banks],
+      activity:[...DEMO.activity]
+    };
+    const save = ()=>localStorage.setItem('cb_state',JSON.stringify(state));
+
+    // -------- UI binds
+    function updateBalances(){
+      el('topBalance').textContent  = KRW.format(state.balance);
+      el('bigBalance').textContent  = KRW.format(state.balance);
+    }
+    function renderBanks(){
+      const list = el('bankList'); list.innerHTML='';
+      state.banks.forEach(b=>{
+        const li = document.createElement('div'); li.className='item';
+        li.innerHTML = `<div>${b}</div><div class="kbd">Linked</div>`;
+        list.appendChild(li);
+      });
+      // deposit select
+      const sel = el('depBank'); sel.innerHTML='';
+      state.banks.forEach(b=>{
+        const o=document.createElement('option'); o.value=o.textContent=b; sel.appendChild(o);
+      });
+    }
+    function renderActivity(){
+      const month = el('monthFilter').value;
+      const type  = el('typeFilter').value;
+      const wrap  = el('activity'); wrap.innerHTML='';
+      state.activity
+        .filter(a=> month==='all' ? true : a.date.startsWith(month))
+        .filter(a=> type==='all'  ? true : a.type===type)
+        .sort((a,b)=> b.date.localeCompare(a.date))
+        .forEach(a=>{
+          const row=document.createElement('div');row.className='item';
+          row.innerHTML = `<div><div>${a.label}</div><div class="kbd">${new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div>
+                           <div class="amt ${a.amt<0?'negative':'positive'}">${KRW.format(a.amt)}</div>`;
+          wrap.appendChild(row);
+        });
+    }
+
+    // Tabs
+    function setTab(name){
+      ['dash','wallet','banks'].forEach(k=>{
+        show(k+'View', k===name);
+        el('tab'+k[0].toUpperCase()+k.slice(1)).classList.toggle('active', k===name);
+      });
+    }
+
+    // Login flow (no visible hints)
+    el('loginBtn').onclick = ()=>{
+      const email = el('email').value.trim();
+      const pass  = el('password').value.trim();
+      if(!email || !pass){ toast('Enter email and password'); return; }
+      if(email.toLowerCase()===DEMO.user.email && pass===DEMO.user.password){
+        state.logged = true; state.who = {name:"Oshatey", email};
+        save(); onLogin();
+      }else{
+        toast('Invalid credentials');
+      }
+    };
+
+    function onLogin(){
+      el('who').textContent = state.who?.name || '—';
+      updateBalances(); renderActivity(); renderBanks();
+      show('loginView', false);
+      show('dashView', true);
+      el('logoutBtn').classList.remove('hide');
+    }
+
+    el('logoutBtn').onclick = ()=>{
+      state.logged=false; save();
+      show('dashView', false); show('walletView', false); show('banksView', false);
+      show('loginView', true);
+      ['tabDash','tabWallet','tabBanks'].forEach(id=>el(id).classList.remove('active'));
+      el('tabDash').classList.add('active');
+      setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50);
+    };
+
+    // Deposit
+    el('depositOpen').onclick = ()=> show('depositModal', true);
+    function closeDeposit(){ show('depositModal', false) }
+    function doDeposit(){
+      const amt = Number(el('depAmount').value||0);
+      const bank= el('depBank').value;
+      if(amt<=0){ toast('Enter a valid amount'); return; }
+      state.balance += amt;
+      state.activity.push({date:new Date().toISOString().slice(0,10), type:'deposit', label:`Deposit from ${bank}`, amt:+amt});
+      save(); updateBalances(); renderActivity(); closeDeposit(); toast('Deposit added');
+      el('depAmount').value='';
+    }
+    window.closeDeposit = closeDeposit;
+
+    // Withdraw (PayPal only)
+    el('withdrawOpen').onclick = ()=> show('withdrawModal', true);
+    function closeWithdraw(){ show('withdrawModal', false) }
+    function doWithdraw(){
+      const amt = Number(el('wdAmount').value||0);
+      const pp  = el('wdPaypal').value.trim();
+      if(amt<=0){ toast('Enter a valid amount'); return; }
+      if(!pp || !pp.includes('@')){ toast('Enter a PayPal email'); return; }
+      if(amt>state.balance){ toast('Insufficient funds'); return; }
+      state.balance -= amt;
+      state.activity.push({date:new Date().toISOString().slice(0,10), type:'withdraw', label:`PayPal • ${pp}`, amt:-amt});
+      save(); updateBalances(); renderActivity(); closeWithdraw(); toast('Withdrawal queued');
+      el('wdAmount').value=''; el('wdPaypal').value='';
+    }
+    window.closeWithdraw = closeWithdraw;
+
+    // Banks
+    el('bankAdd').onclick = ()=>{
+      const q = el('bankSearch').value.trim();
+      if(!q){ toast('Enter a bank name'); return; }
+      if(!state.banks.includes(q)){ state.banks.push(q); save(); renderBanks(); toast('Bank added'); }
+      el('bankSearch').value='';
+    };
+    ['monthFilter','typeFilter'].forEach(id=> el(id).addEventListener('change',renderActivity));
+
+    // Tabs handlers
+    el('tabDash').onclick  = ()=>{ setTab('dash'); };
+    el('tabWallet').onclick= ()=>{ setTab('wallet'); };
+    el('tabBanks').onclick = ()=>{ setTab('banks'); };
+
+    // Install (PWA-like prompt placeholder)
+    el('installBtn').onclick = ()=> toast('Use your browser menu • Add to Home Screen');
+
+    // App boot
+    (function boot(){
+      updateBalances(); renderBanks(); renderActivity();
+      if(state.logged){ onLogin(); } else { show('loginView', true); }
+      setTab('dash'); hideLoader();
+    })();
+  </script>
+</body>
+</html>

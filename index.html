@@ -93,7 +93,7 @@
 
   </main>
 
-  <nav class="tabbar">
+  <nav id="tabs" class="tabbar hidden">
     <div class="tabrow">
       <div class="tab">Dashboard</div>
       <div class="tab">Wallet</div>
@@ -108,18 +108,21 @@
     const loading = document.getElementById('loading');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
+    const tabs = document.getElementById('tabs');
 
-    // Gate UI based on session
+    // Toggle UI
     function applyAuthUI() {
       const authed = sessionStorage.getItem('cb_auth') === '1';
       if (authed) {
         loginCard.classList.add('hidden');
         hdrBalance.classList.remove('hidden');
         dash.classList.remove('hidden');
+        tabs.classList.remove('hidden');
       } else {
         dash.classList.add('hidden');
         hdrBalance.classList.add('hidden');
         loginCard.classList.remove('hidden');
+        tabs.classList.add('hidden');
       }
     }
 
@@ -130,7 +133,6 @@
         alert('Please enter both email and password.');
         return;
       }
-      // fake delay + set session flag
       loading.style.display = 'flex';
       loginBtn.disabled = true;
       setTimeout(() => {
@@ -144,13 +146,12 @@
     logoutBtn.addEventListener('click', () => {
       sessionStorage.removeItem('cb_auth');
       applyAuthUI();
-      // Optional: clear inputs
       document.getElementById('email').value = '';
       document.getElementById('pwd').value = '';
       window.scrollTo({top:0,behavior:'smooth'});
     });
 
-    // On first load
+    // On load
     applyAuthUI();
   </script>
 </body>

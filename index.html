@@ -6,9 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <title>Charity Bank</title>
 <meta name="theme-color" content="#0b1220" />
-<link rel="icon" type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='48' fill='%230a66ff'/%3E%3Ctext x='50' y='58' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='40' fill='white'%3ECB%3C/text%3E%3C/svg%3E" />
-
 <style>
 :root{
   --bg:#0b1220; --card:#0f172a; --line:#1e293b; --text:#e6eef7; --muted:#94a3b8;
@@ -20,41 +17,28 @@ body{margin:0;background:
   radial-gradient(1000px 500px at 5% -10%, rgba(34,211,238,.12), transparent 60%),
   radial-gradient(800px 400px at 110% 10%, rgba(10,102,255,.10), transparent 60%),
   var(--bg); color:var(--text); font-family:Inter, system-ui, Arial, sans-serif;}
-a{color:inherit;text-decoration:none}
 .container{max-width:980px;margin:0 auto;padding:16px}
 .header{position:sticky;top:0;z-index:10;background:rgba(11,18,32,.75);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .header-inner{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;max-width:980px;margin:0 auto}
 .logo{display:flex;align-items:center;gap:10px}
 .badge{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:grid;place-items:center;font-weight:800}
-.title{font-weight:800}
 .nav{display:none;gap:8px}
 .nav button{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#0f172a;color:var(--text)}
 .nav button.active{background:linear-gradient(180deg,#0f172a,#0b1220);border-color:#334155}
 
-.shell{max-width:980px;margin:0 auto;padding:16px 12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 26px rgba(0,0,0,.18)}
-.flex{display:flex}
-.col{display:flex;flex-direction:column}
-.gap8{gap:8px} .gap12{gap:12px} .gap16{gap:16px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column}
 .input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#081220;color:var(--text)}
 .input:focus{outline:none;border-color:#3b82f6}
 .btn{display:inline-flex;gap:10px;align-items:center;justify-content:center;padding:14px 16px;border-radius:12px;border:1px solid #1f2a44;background:#0b1220;color:#fff;font-weight:700;cursor:pointer}
 .btn.primary{background:linear-gradient(90deg,var(--brand),var(--brand2));border-color:#0ea5e9}
 .btn.ghost{background:#0f172a}
-.btn.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);border-color:#7f1d1d}
-.center{justify-content:center}
 .hidden{display:none}
-.right{margin-left:auto}
 .kpi{font-weight:800;font-size:28px}
 .mono{font-variant-numeric:tabular-nums}
 .small{font-size:12px;color:var(--muted)}
 .select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#081220;color:var(--text)}
-.tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(11,18,32,.9);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:none}
-.tabbar .btn{flex:1;border-radius:0;border:0;padding:14px 6px}
-.tabbar .btn.active{background:linear-gradient(180deg,#0f172a,#0b1220)}
-.mt12{margin-top:12px} .mt16{margin-top:16px} .mt24{margin-top:24px}
-.bad{color:var(--bad)} .ok{color:var(--ok)}
 .list{display:flex;flex-direction:column;border:1px dashed #22334a;border-radius:12px}
 .list .row{justify-content:space-between;border-bottom:1px solid #0b2437;padding:12px}
 .list .row:last-child{border-bottom:0}
@@ -64,13 +48,10 @@ a{color:inherit;text-decoration:none}
 .sheet h3{margin:0 0 10px 0}
 .sheet .grid{display:grid;grid-template-columns:1fr;gap:10px}
 .toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:#19223a;border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:12px;display:none}
-@media (min-width:720px){
-  .nav{display:flex}
-  .tabbar{display:none!important}
-}
-@media (max-width:719px){
-  .tabbar{display:flex}
-}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{display:none;align-items:center;gap:10px;justify-content:center;margin-top:10px}
+.spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.25);border-top:3px solid var(--brand);border-radius:50%;animation:spin 1s linear infinite}
 </style>
 </head>
 <body>
@@ -80,10 +61,8 @@ a{color:inherit;text-decoration:none}
     <div class="logo">
       <div class="badge">CB</div>
       <div class="col">
-        <div class="row" style="gap:8px;">
-          <strong>Charity Bank</strong>
-          <span id="header-balance" class="small mono"></span>
-        </div>
+        <strong>Charity Bank</strong>
+        <div id="header-balance" class="small mono"></div>
       </div>
     </div>
     <div class="nav" id="nav">
@@ -95,37 +74,34 @@ a{color:inherit;text-decoration:none}
   </div>
 </header>
 
-<main class="shell">
-  <!-- LOGIN -->
+<main class="container">
+  <!-- LOGIN (always shown first; session never persisted) -->
   <section id="loginCard" class="card">
-    <h2>Log in</h2>
-    <div class="small" style="margin-bottom:8px;">Enter email & password to access your account.</div>
-    <div class="col gap12">
-      <input id="loginEmail" class="input" placeholder="Email" inputmode="email" />
-      <input id="loginPass" class="input" placeholder="Password" type="password" />
-      <button id="loginBtn" class="btn primary">Log In</button>
-    </div>
+    <h2 style="margin:0 0 10px 0;">Log in</h2>
+    <div class="small" style="margin-bottom:8px;">Email and password are required every time.</div>
+    <input id="loginEmail" class="input" placeholder="Email" inputmode="email" autocomplete="username" />
+    <input id="loginPass" class="input" placeholder="Password" type="password" autocomplete="current-password" />
+    <button id="loginBtn" class="btn primary" style="width:100%;margin-top:12px">Log In</button>
+    <div id="loginLoading" class="loading"><div class="spin"></div> <span class="small">Verifying…</span></div>
+    <div id="loginErr" class="small" style="color:#fca5a5;margin-top:8px"></div>
   </section>
 
   <!-- DASHBOARD -->
-  <section id="dash" class="col gap16 hidden">
+  <section id="dash" class="hidden">
     <div class="card">
       <div class="row">
         <div class="col">
           <div class="small">Available balance</div>
           <div class="kpi mono" id="balance">₩520,994,770.87</div>
         </div>
-        <div class="right">
-          <div class="btn ghost small" id="currencyTag">KRW</div>
+        <div class="col" style="margin-left:auto;align-items:flex-end">
+          <button id="depositBtn" class="btn primary" style="min-width:140px">Deposit</button>
+          <button id="withdrawBtn" class="btn ghost" style="min-width:140px;margin-top:8px">Withdraw (PayPal)</button>
         </div>
-      </div>
-      <div class="row mt16">
-        <button id="depositBtn" class="btn primary" style="flex:1">Deposit</button>
-        <button id="withdrawBtn" class="btn ghost" style="flex:1">Withdraw (PayPal)</button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-top:14px">
       <h3 style="margin:0 0 10px 0;">Activity</h3>
       <div class="row">
         <select id="monthFilter" class="select" style="flex:1">
@@ -142,7 +118,7 @@ a{color:inherit;text-decoration:none}
         </select>
         <button id="csvBtn" class="btn ghost">Download CSV</button>
       </div>
-      <div id="activityList" class="list mt12"></div>
+      <div id="activityList" class="list" style="margin-top:12px"></div>
     </div>
   </section>
 
@@ -150,7 +126,7 @@ a{color:inherit;text-decoration:none}
   <section id="wallet" class="hidden">
     <div class="card">
       <h3 style="margin:0 0 10px 0;">Wallet</h3>
-      <div class="small">This is a personal wallet view. Use Deposit/Withdraw from Dashboard to move funds.</div>
+      <div class="small">Use Deposit/Withdraw on Dashboard to move funds.</div>
     </div>
   </section>
 
@@ -159,20 +135,20 @@ a{color:inherit;text-decoration:none}
     <div class="card">
       <h3 style="margin:0 0 10px 0;">Linked Banks</h3>
       <div id="banksList" class="list"></div>
-      <div class="row mt16">
+      <div class="row" style="margin-top:12px">
         <button id="addBankBtn" class="btn primary">Add bank</button>
-        <button id="clearBanksBtn" class="btn danger">Remove all</button>
+        <button id="clearBanksBtn" class="btn" style="border-color:#7f1d1d;color:#fca5a5">Remove all</button>
       </div>
     </div>
   </section>
 </main>
 
-<!-- DEPOSIT MODAL -->
+<!-- MODALS -->
 <div id="depositModal" class="modal" role="dialog" aria-modal="true">
   <div class="sheet">
     <h3>Deposit</h3>
     <div class="grid">
-      <input id="depSearch" class="input" placeholder="Search bank (e.g., KEB Hana, Shinhan, KB, Citi…)" />
+      <input id="depSearch" class="input" placeholder="Search bank…" />
       <select id="depBank" class="select"></select>
       <input id="depAcct" class="input" placeholder="Account number" inputmode="numeric" />
       <input id="depAmount" class="input" placeholder="Amount (₩)" inputmode="decimal" />
@@ -182,11 +158,10 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- WITHDRAW MODAL -->
 <div id="withdrawModal" class="modal" role="dialog" aria-modal="true">
   <div class="sheet">
     <h3>Withdraw to PayPal</h3>
-    <div class="small">A valid coupon is required to enable withdrawal.</div>
+    <div class="small">Coupon required for withdrawal.</div>
     <div class="grid">
       <input id="wdEmail" class="input" placeholder="PayPal email" inputmode="email" />
       <input id="wdAmount" class="input" placeholder="Amount (₩)" inputmode="decimal" />
@@ -199,178 +174,163 @@ a{color:inherit;text-decoration:none}
 
 <div id="toast" class="toast"></div>
 
-<!-- PWA manifest (runtime) -->
 <script>
-(function(){
-  const manifest = {
-    name:"Charity Bank", short_name:"CharityBank",
-    start_url:".", scope:".", display:"standalone",
-    background_color:"#0b1220", theme_color:"#0a66ff",
-    icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='48' fill='%230a66ff'/%3E%3Ctext x='50' y='58' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='40' fill='white'%3ECB%3C/text%3E%3C/svg%3E",sizes:"512x512",type:"image/svg+xml"}]
-  };
-  const link = document.createElement('link'); link.rel='manifest';
-  link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
-  document.head.appendChild(link);
-})();
-</script>
-
-<script>
-/* -----------------------
-   CONFIG — EDIT THESE
-------------------------*/
-// Set the ONLY valid coupon you give to people (keep private when you share the site)
-const ADMIN_COUPON = "COUPON-ONLY-FROM-YOU";  // <-- change this string
-// Starting balance in KRW:
+/* =========================
+   CONFIG (edit if needed)
+========================= */
+// Set your private coupon for PayPal withdrawals:
+const ADMIN_COUPON = "COUPON-ONLY-FROM-YOU";
+// Start balance:
 const START_BAL = 520_994_770.87;
 
-/* -----------------------
-   UTIL / STATE
-------------------------*/
-const $$ = (sel,root=document)=>root.querySelector(sel);
-const $$$ = (sel,root=document)=>[...root.querySelectorAll(sel)];
+/* =========================
+   UTILITIES
+========================= */
+const $ = s => document.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 const fmt = n => "₩" + Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
-const toast = (msg)=>{ const t=$('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2200);};
+const toast = (msg)=>{ const t=$("#toast"); t.textContent=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",2000); };
+
+/* =========================
+   STATE (no auth persistence)
+========================= */
+// App data may persist, auth never does.
 const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const load = (k,d=undefined)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}};
+const load = (k,d)=>{ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch{return d;} };
 
 const state = {
-  session: load('cb_session', {logged:false,email:""}),
+  authed: false,                 // <-- never saved; resets on refresh/leave
   balance: load('cb_balance', START_BAL),
-  activity: load('cb_activity', []),
-  banks: load('cb_banks', [])
+  banks:   load('cb_banks', []),
+  activity: load('cb_activity', [])
 };
 
-/* Seed September + October activity (once) */
-if(!load('cb_seeded')){
+// Seed activity once
+if(!load('cb_seeded', false)){
   const seed = [
-    // September (from earlier)
-    {t:"deposit", label:"Salary Deposit", amt: 4000000, date:"2025-09-20"},
-    {t:"deposit", label:"Investment Return", amt: 2500000, date:"2025-09-15"},
-    {t:"other", label:"Equipment Purchase", amt:-250000, date:"2025-09-12"},
-    {t:"other", label:"Flight Booking", amt:-120000, date:"2025-09-10"},
-    {t:"other", label:"Project Income", amt:116800, date:"2025-09-08"},
-    // October (auto)
-    {t:"deposit", label:"Freelance Payment", amt: 3200000, date:"2025-10-14"},
-    {t:"other", label:"Hotel Booking", amt:-780000, date:"2025-10-10"},
-    {t:"fee", label:"Service Fee", amt:-12000, date:"2025-10-09"},
-    {t:"deposit", label:"Reimbursement", amt: 450000, date:"2025-10-05"},
+    {t:"deposit",    label:"Freelance Payment", amt: 3200000,  date:"2025-10-14"},
+    {t:"other",      label:"Hotel Booking",     amt:-780000,   date:"2025-10-10"},
+    {t:"withdrawal", label:"PayPal • sample",   amt:-1500000,  date:"2025-10-07"},
+    {t:"deposit",    label:"Salary Deposit",    amt: 4000000,  date:"2025-09-20"},
+    {t:"deposit",    label:"Investment Return", amt: 2500000,  date:"2025-09-15"},
+    {t:"other",      label:"Equipment Purchase",amt:-2500000,  date:"2025-09-12"}
   ];
-  state.activity = [...seed, ...state.activity];
-  // Recompute balance from START_BAL plus these seed entries
-  let bal = START_BAL;
-  seed.forEach(a=> bal += a.amt);
-  state.balance = bal;
+  state.activity = seed.concat(state.activity);
   save('cb_activity', state.activity);
-  save('cb_balance', state.balance);
   save('cb_seeded', true);
 }
 
-/* -----------------------
-   LOGIN / NAV
-------------------------*/
+/* =========================
+   AUTH — ALWAYS REQUIRED
+========================= */
 const loginCard = $('#loginCard');
 const nav = $('#nav');
 const headerBal = $('#header-balance');
 
-function updateHeader(){
-  headerBal.textContent = state.session.logged ? fmt(state.balance) : "";
-}
-
-function showTab(id){
-  $$$('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
-  ['dash','wallet','banks'].forEach(x => $('#'+x).classList.add('hidden'));
-  $('#'+id).classList.remove('hidden');
-}
-
-function guardUI(){
-  if(state.session.logged){
+function applyAuthUI(){
+  if(state.authed){
     loginCard.classList.add('hidden');
-    nav.style.display='flex';
-    $('.tabbar')?.remove(); // desktop only; we keep header nav
+    nav.style.display = 'flex';
     showTab('dash');
-    updateHeader();
-    renderActivity();
-    renderBanks();
-    $('#balance').textContent = fmt(state.balance);
-  }else{
+    renderAll();
+  } else {
+    nav.style.display = 'none';
+    ['dash','wallet','banks'].forEach(id=>$('#'+id).classList.add('hidden'));
     loginCard.classList.remove('hidden');
-    nav.style.display='none';
-    ['dash','wallet','banks'].forEach(x => $('#'+x).classList.add('hidden'));
+    headerBal.textContent = ""; // hide header balance when logged out
   }
 }
 
 $('#loginBtn').onclick = ()=>{
   const e = $('#loginEmail').value.trim();
   const p = $('#loginPass').value.trim();
-  if(!e || !p){ toast("Enter email and password"); return; }
-  state.session = {logged:true,email:e};
-  save('cb_session', state.session);
-  guardUI();
+  const load = $('#loginLoading');
+  const err = $('#loginErr');
+  err.textContent = "";
+  if(!e || !p){ err.textContent = "Enter email and password."; return; }
+  load.style.display='flex';
+  $('#loginBtn').disabled = true;
+  // fake verify delay
+  setTimeout(()=>{
+    state.authed = true;      // set auth IN MEMORY only
+    load.style.display='none';
+    $('#loginBtn').disabled = false;
+    $('#loginEmail').value = "";
+    $('#loginPass').value = "";
+    applyAuthUI();
+  }, 800);
 };
 
-$('#logoutBtn').onclick = ()=>{
-  state.session = {logged:false,email:""};
-  save('cb_session', state.session);
-  guardUI();
-};
+$('#logoutBtn').onclick = forceLogout;
 
-$$$('.nav button[data-tab]').forEach(b=> b.onclick=()=> showTab(b.dataset.tab));
+// Auto-logout whenever you leave/switch away/close/reload
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) forceLogout(); });
+window.addEventListener('pagehide', forceLogout, {capture:true});
+window.addEventListener('beforeunload', forceLogout, {capture:true});
 
-/* -----------------------
-   ACTIVITY
-------------------------*/
-function renderActivity(){
-  const month = $('#monthFilter').value;
-  const type = $('#typeFilter').value;
-  const list = $('#activityList'); list.innerHTML = "";
+function forceLogout(){
+  state.authed = false;
+  applyAuthUI();
+  // optional: also clear any modal
+  closeModal('#depositModal'); closeModal('#withdrawModal');
+  // scroll to top for clean login view
+  window.scrollTo({top:0,behavior:'instant'});
+}
 
-  const filtered = state.activity.filter(a=>{
-    const okM = month==='all' || a.date.startsWith(month);
-    const okT = type==='all' || a.t===type;
-    return okM && okT;
-  });
+/* =========================
+   NAV / TABS
+========================= */
+function showTab(id){
+  $$('[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+  ['dash','wallet','banks'].forEach(x=>$('#'+x).classList.add('hidden'));
+  $('#'+id).classList.remove('hidden');
+}
 
-  if(!filtered.length){
-    const r = document.createElement('div');
-    r.className = 'row'; r.innerHTML = `<div class="small">No activity yet.</div>`;
-    list.appendChild(r); return;
-  }
-
-  filtered
-    .sort((a,b)=> b.date.localeCompare(a.date))
-    .forEach(a=>{
-      const r = document.createElement('div');
-      r.className = 'row';
-      const signClass = a.amt<0 ? 'bad' : 'ok';
-      r.innerHTML = `
-        <div>
-          <div>${a.label}</div>
-          <div class="small">${new Date(a.date).toLocaleDateString('en-US',{month:'short', day:'2-digit', year:'numeric'})} • ${a.t}</div>
-        </div>
-        <div class="mono ${signClass}">${fmt(a.amt)}</div>
-      `;
-      list.appendChild(r);
-    });
+/* =========================
+   RENDERERS
+========================= */
+function renderAll(){
+  $('#header-balance').textContent = fmt(state.balance);
+  $('#balance').textContent = fmt(state.balance);
+  renderActivity();
+  renderBanks();
 }
 
 $('#monthFilter').onchange = renderActivity;
 $('#typeFilter').onchange = renderActivity;
 
-$('#csvBtn').onclick = ()=>{
-  const rows = [["Date","Type","Label","Amount"]];
-  state.activity.forEach(a=> rows.push([a.date,a.t,a.label,a.amt]));
-  const csv = rows.map(r=> r.map(x=>String(x).replaceAll('"','""')).map(x=>`"${x}"`).join(",")).join("\n");
-  const blob = new Blob([csv],{type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'charity_bank_activity.csv';
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
+function renderActivity(){
+  const month = $('#monthFilter').value;
+  const type  = $('#typeFilter').value;
+  const list = $('#activityList'); list.innerHTML = "";
+  const items = state.activity
+    .filter(a => (month==='all' || a.date.startsWith(month)))
+    .filter(a => (type==='all'  || a.t===type))
+    .sort((a,b)=> b.date.localeCompare(a.date));
 
-/* -----------------------
+  if(!items.length){
+    const r=document.createElement('div');
+    r.className='row'; r.innerHTML=`<div class="small">No activity yet.</div>`;
+    list.appendChild(r); return;
+  }
+
+  items.forEach(a=>{
+    const r=document.createElement('div');
+    r.className='row';
+    const cls = a.amt<0 ? 'bad' : 'ok';
+    r.innerHTML = `
+      <div>
+        <div>${a.label}</div>
+        <div class="small">${new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} • ${a.t}</div>
+      </div>
+      <div class="mono ${cls}">${fmt(a.amt)}</div>`;
+    list.appendChild(r);
+  });
+}
+
+/* =========================
    BANKS
-------------------------*/
+========================= */
 const ALL_BANKS = [
   "KEB Hana Bank","Shinhan Bank","KB Kookmin Bank","Woori Bank","NongHyup (NH) Bank",
   "IBK (Industrial Bank of Korea)","SC First Bank","CitiBank Korea","KakaoBank","Toss Bank",
@@ -379,145 +339,120 @@ const ALL_BANKS = [
 ];
 
 function renderBanks(){
-  const box = $('#banksList'); box.innerHTML = "";
+  const wrap = $('#banksList'); wrap.innerHTML = "";
   if(!state.banks.length){
-    const r = document.createElement('div');
-    r.className='row';
-    r.innerHTML = `<div class="small">No linked banks. Add one to enable deposits.</div>`;
-    box.appendChild(r); return;
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML=`<div class="small">No linked banks.</div>`;
+    wrap.appendChild(r); return;
   }
-  state.banks.forEach((b,idx)=>{
-    const r = document.createElement('div');
-    r.className='row';
-    r.innerHTML = `
-      <div><strong>${b.name}</strong><div class="small">Acct •••• ${b.acct.slice(-4)}</div></div>
-      <button class="btn ghost" data-del="${idx}">Remove</button>
-    `;
-    box.appendChild(r);
+  state.banks.forEach((b,i)=>{
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML = `<div><strong>${b.name}</strong><div class="small">Acct •••• ${b.acct.slice(-4)}</div></div>
+                   <button class="btn ghost" data-del="${i}">Remove</button>`;
+    wrap.appendChild(r);
   });
-  $$$('#banksList [data-del]').forEach(btn=>{
-    btn.onclick = ()=>{
-      const i = +btn.dataset.del;
+  $$('#banksList [data-del]').forEach(btn=>{
+    btn.onclick=()=>{
+      const i=+btn.dataset.del;
       state.banks.splice(i,1);
       save('cb_banks', state.banks);
       renderBanks();
     };
   });
 }
-
 $('#addBankBtn').onclick = ()=>{
-  openDepositModal(); // reuse deposit modal to select any bank & account
+  // Reuse deposit modal for adding a bank quickly
+  openDepositModal();
   $('#depAmount').value = "";
 };
 $('#clearBanksBtn').onclick = ()=>{
   state.banks = []; save('cb_banks', state.banks); renderBanks();
 };
 
-/* -----------------------
-   DEPOSIT FLOW
-------------------------*/
-function fillBankSelect(){
-  const sel = $('#depBank'); sel.innerHTML="";
-  ALL_BANKS.forEach(n=>{
-    const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o);
-  });
+/* =========================
+   DEPOSIT
+========================= */
+function fillBankSelect(q=""){
+  const sel = $('#depBank'); sel.innerHTML = "";
+  ALL_BANKS.filter(n=> n.toLowerCase().includes(q.toLowerCase()))
+           .forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
+  if(!sel.children.length){ const o=document.createElement('option'); o.textContent="No matches"; sel.appendChild(o); }
 }
 function openDepositModal(){
+  if(!state.authed) return;
+  $('#depSearch').value="";
+  $('#depAcct').value="";
   fillBankSelect();
-  $('#depSearch').value = "";
-  $('#depAcct').value = "";
   $('#depositModal').style.display='flex';
   $('#depSearch').focus();
 }
 $('#depositBtn').onclick = openDepositModal;
-
-$('#depSearch').oninput = (e)=>{
-  const q = e.target.value.toLowerCase();
-  const sel = $('#depBank'); sel.innerHTML="";
-  ALL_BANKS.filter(n=> n.toLowerCase().includes(q)).forEach(n=>{
-    const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o);
-  });
-  if(!sel.children.length){
-    const o=document.createElement('option'); o.textContent="No matches"; sel.appendChild(o);
-  }
-};
+$('#depSearch').oninput = e => fillBankSelect(e.target.value);
 
 $('#depSubmit').onclick = ()=>{
+  if(!state.authed) return;
   const bank = $('#depBank').value;
   const acct = $('#depAcct').value.trim();
-  const amt = parseFloat(($('#depAmount').value || "0").replace(/,/g,""));
+  const amt  = parseFloat(($('#depAmount').value||"0").replace(/,/g,""));
   if(!bank || !acct || !amt || amt<=0){ toast("Fill all deposit fields correctly"); return; }
 
-  // Save bank if not already linked
-  if(!state.banks.some(b=> b.name===bank && b.acct===acct)){
+  // Save bank if new
+  if(!state.banks.some(x=>x.name===bank && x.acct===acct)){
     state.banks.push({name:bank, acct});
     save('cb_banks', state.banks);
   }
   // Apply deposit
   state.balance += amt;
-  state.activity.unshift({t:"deposit", label:`Deposit from ${bank}`, amt: amt, date: new Date().toISOString().slice(0,10)});
-  save('cb_balance', state.balance);
-  save('cb_activity', state.activity);
-
-  $('#balance').textContent = fmt(state.balance);
-  updateHeader();
-  renderActivity();
-  renderBanks();
+  state.activity.unshift({t:"deposit", label:`Deposit from ${bank}`, amt:amt, date:new Date().toISOString().slice(0,10)});
+  save('cb_balance', state.balance); save('cb_activity', state.activity);
+  renderAll();
   closeModal('#depositModal');
   toast("Deposit submitted");
 };
 
-/* -----------------------
-   WITHDRAW FLOW (PayPal + COUPON)
-------------------------*/
+/* =========================
+   WITHDRAW (PayPal + coupon)
+========================= */
 function openWithdrawModal(){
-  $('#wdEmail').value = "";
-  $('#wdAmount').value = "";
-  $('#wdCoupon').value = "";
+  if(!state.authed) return;
+  $('#wdEmail').value=""; $('#wdAmount').value=""; $('#wdCoupon').value="";
   $('#withdrawModal').style.display='flex';
   $('#wdEmail').focus();
 }
 $('#withdrawBtn').onclick = openWithdrawModal;
 
 $('#wdSubmit').onclick = ()=>{
+  if(!state.authed) return;
   const email = $('#wdEmail').value.trim();
-  const amt = parseFloat(($('#wdAmount').value || "0").replace(/,/g,""));
-  const coupon = $('#wdCoupon').value.trim();
-  if(!email || !amt || amt<=0 || !coupon){ toast("Provide email, amount and coupon"); return; }
-  if(coupon !== ADMIN_COUPON){ toast("Invalid coupon. Ask the administrator."); return; }
+  const amt   = parseFloat(($('#wdAmount').value||"0").replace(/,/g,""));
+  const coup  = $('#wdCoupon').value.trim();
+  if(!email || !amt || amt<=0 || !coup){ toast("Provide email, amount and coupon"); return; }
+  if(coup !== ADMIN_COUPON){ toast("Invalid coupon. Ask the administrator."); return; }
   if(amt > state.balance){ toast("Amount exceeds balance"); return; }
+  const fee = Math.max(1200, Math.round(amt*0.01)); // 1% or min ₩1,200
 
-  // simulate withdrawal + fee
-  const fee = Math.max(1200, Math.round(amt * 0.01)); // 1% or min ₩1,200
   state.balance -= (amt + fee);
   state.activity.unshift({t:"withdrawal", label:`PayPal: ${email}`, amt:-amt, date:new Date().toISOString().slice(0,10)});
   state.activity.unshift({t:"fee", label:`Withdrawal Fee`, amt:-fee, date:new Date().toISOString().slice(0,10)});
-  save('cb_balance', state.balance);
-  save('cb_activity', state.activity);
-
-  $('#balance').textContent = fmt(state.balance);
-  updateHeader();
-  renderActivity();
+  save('cb_balance', state.balance); save('cb_activity', state.activity);
+  renderAll();
   closeModal('#withdrawModal');
   toast("Withdrawal queued");
 };
 
-/* -----------------------
+/* =========================
    MODAL HELPERS
-------------------------*/
-function closeModal(sel){ $(sel).style.display='none'; }
-$$$('[data-close]').forEach(btn=> btn.onclick=()=> closeModal(btn.getAttribute('data-close')));
-
-document.addEventListener('click', (e)=>{
+========================= */
+function closeModal(sel){ const el=document.querySelector(sel); if(el) el.style.display='none'; }
+$$('[data-close]').forEach(btn=> btn.onclick=()=> closeModal(btn.getAttribute('data-close')));
+document.addEventListener('click', e=>{
   if(e.target.classList.contains('modal')) e.target.style.display='none';
 });
 
-/* -----------------------
-   INIT
-------------------------*/
-function $(sel){return document.querySelector(sel)}
-guardUI();
+/* =========================
+   BOOT
+========================= */
+applyAuthUI(); // starts at login every time
 </script>
-
 </body>
 </html>

